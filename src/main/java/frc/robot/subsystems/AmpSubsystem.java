@@ -13,6 +13,8 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import frc.robot.States.*;
 import frc.robot.Constants.*;
+import frc.robot.Constants.FullAmpSubsystem.InfoAmpSubsystem; 
+import frc.robot.Constants.FullAmpSubsystem.ArmPIDValues; 
 
 public class AmpSubsystem {
     CANSparkMax LeftMotor; 
@@ -26,15 +28,12 @@ public class AmpSubsystem {
     private double targetPos; 
 
     public AmpSubsystem(){
-        LeftMotor = new CANSparkMax(InfoAmpSubsystem.leftMotorID, MotorType.kBrushless); 
-        RightMotor = new CANSparkMax(InfoAmpSubsystem.RightMotorID, MotorType.kBrushless); 
+        LeftMotor = new CANSparkMax(InfoAmpSubsystem.ArmleftMotorID, MotorType.kBrushless); 
+        RightMotor = new CANSparkMax(InfoAmpSubsystem.ArmRightMotorID, MotorType.kBrushless); 
         TrapMotor = new CANSparkMax(InfoAmpSubsystem.TrapID, MotorType.kBrushless); 
 
-        targetPos = 0.5; 
-        arm_pid.setSetpoint(targetPos);
-        arm_pid = new PIDController(ArmPIDValues.PID_P, ArmPIDValues.PID_I, ArmPIDValues.PID_D); 
+        arm_pid = new PIDController(ArmPIDValues.ArmPID_P, ArmPIDValues.ArmPID_I, ArmPIDValues.ArmPID_D); 
         armPosition = armEncoder.getAbsolutePosition() * 360;
-        armspeed = arm_pid.calculate(armPosition, targetPos); 
     }
 
     public void setTrapMotorStates (TrapMotorState TrapState) {
@@ -56,6 +55,8 @@ public class AmpSubsystem {
     public void setArmStates (ArmMotorState ArmState) {
         switch (ArmState) {
             case ANGLE1: 
+                armspeed = setPIDTargetedPos(0.5);
+                SetSmartDashboard();
                 setAmpSpeed(armspeed, -armspeed, 0);
                 break; 
             case STOP: 
@@ -70,6 +71,13 @@ public class AmpSubsystem {
         LeftMotor.set(leftMotorSpeed);
         RightMotor.set(RightMotorSpeed);
         TrapMotor.set(TrapMotorSpeed);
+    }
+
+    public double setPIDTargetedPos(double target){
+        arm_pid.setSetpoint(target);
+        double speed = arm_pid.calculate(armPosition, targetPos); 
+
+        return speed; 
     }
 
     public void SetSmartDashboard(){
